@@ -37,7 +37,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 
 RUN pip install --no-cache-dir jupyterlab \
     # xformers isn't used under Vlad default settings, but is an option
-    # xformers && \
+  # xformers && \
     && \
     rm -rf /root/.cache/pip
 
