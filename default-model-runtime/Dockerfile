@@ -1,4 +1,5 @@
-FROM nvidia/cuda:11.6.2-cudnn8-devel-ubuntu20.04
+# Get some prerequisites out of the way
+FROM nvidia/cuda:11.6.2-cudnn8-devel-ubuntu20.04 as prerequisites
 
 # for software-properties-common prompts
 ENV DEBIAN_FRONTEND noninteractive
@@ -12,6 +13,8 @@ RUN apt update && \
     curl \
     # for add-apt-repository (which is needed for installing python 3.10)
     software-properties-common \
+    # for copying files back to /workspace in start.sh
+    rsync \
     # for something start_server needs in launch.py
     libgl1 \
     # something else start_server needs
@@ -37,9 +40,12 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 
 RUN pip install --no-cache-dir jupyterlab \
     # xformers isn't used under Vlad default settings, but is an option
-  # xformers && \
+    # xformers \
     && \
     rm -rf /root/.cache/pip
+
+# Build stage; sets everything up in /workspace/automatic
+FROM prerequisites AS builder
 
 # Begin installing Vlad Diffusion
 # Clone repo, create python virtual environment
@@ -54,11 +60,15 @@ ADD install.py .
 RUN python -m install && \
     rm -rf /root/.cache/pip
 
+# final stage; copy /workspace/automatic to root dir (copied back in start.sh)
+FROM prerequisites AS final
+COPY --from=builder /workspace /
+
 # start.sh -> relauncher.py -> webui.sh (reads from webui-user.sh) -> launch.py
-ADD start.sh /workspace/automatic/start.sh
-ADD relauncher.py /workspace/automatic/
-ADD webui-user.sh /workspace/automatic/
-RUN chmod a+x /workspace/automatic/start.sh
+ADD start.sh /
+ADD relauncher.py /automatic/
+ADD webui-user.sh /automatic/
+RUN chmod a+x /start.sh
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-CMD [ "/workspace/automatic/start.sh" ]
+CMD [ "./start.sh" ]
