@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Copy automatic back to workspace, remove source files
-echo "syncing automatic to workspace, please wait"
-rsync -au --remove-source-files /automatic/ /workspace/automatic/
-rm -rf /automatic
+# Copy automatic back to workspace, remove source files, activate venv
+echo "syncing automatic and venv to workspace, please wait"
+mv /automatic /workspace/automatic/
+. /workspace/automatic/venv/bin/activate
 
 # webUI startup
 if [[ $RUNPOD_STOP_AUTO ]]
