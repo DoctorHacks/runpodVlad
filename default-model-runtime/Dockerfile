@@ -68,10 +68,6 @@ RUN . /workspace/automatic/venv/bin/activate && \
 FROM prerequisites AS final
 COPY --from=builder /workspace /
 
-# Copy in the Stable Diffusion models
-COPY --from=runpod/stable-diffusion:models-1.0.0 SDv1-5.ckpt /automatic/models/Stable-diffusion/
-COPY --from=runpod/stable-diffusion:models-1.0.0 SDv2-768.ckpt /automatic/models/Stable-diffusion/
-
 # start.sh -> relauncher.py -> webui.sh (reads from webui-user.sh) -> launch.py
 ADD start.sh /
 ADD relauncher.py /automatic/
